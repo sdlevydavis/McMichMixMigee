@@ -220,7 +220,13 @@ def display_playlist(songs_list):
             # draw album images on screen
             img_index = 0
             for image in images:
+                square_rect = image.get_rect()
+                mask = pygame.Surface((int(square_rect.width), int(square_rect.width)), pygame.SRCALPHA)
+                pygame.draw.circle(mask, (255, 255, 255, 255), (square_rect.width // 2, square_rect.width // 2),
+                                   square_rect.width // 2)
+
                 screen.blit(image, img_positions[img_index])
+                screen.blit(mask, img_positions[img_index], special_flags=pygame.BLEND_RGBA_MULT)
                 img_index += 1
             # print("loaded data")  # for debugging purposes
 
