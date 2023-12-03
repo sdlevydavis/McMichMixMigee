@@ -52,7 +52,9 @@ def main():
     # for song in songs_list:
     # img_urls.append(get_album_track_img(song[ID]))
 
-    user_priorities = get_user_input()
+
+    #commentted out to test pygame
+    #user_priorities = get_user_input()
 
     print()
     next_step = input("Type (Y) to open playlist recommendation screen or type any other key to exit the program: ")
@@ -124,6 +126,7 @@ def display_playlist(image_urls):
     for url in image_urls:
         images.append(load_image_from_url(url))
 
+    # checkboxes section
     checkboxes = []
     index = 0
     x_dimension = 15
@@ -193,9 +196,16 @@ def display_playlist(image_urls):
             # draw album images on screen
             img_positions = [(125, 325), (275, 325), (425, 325), (575, 325),
                              (125, 475), (275, 475), (425, 475), (575, 475)]
+
             img_index = 0
             for image in images:
+                #creating a circular mask which over
+                square_rect = image.get_rect()
+                mask = pygame.Surface((int(square_rect.width), int(square_rect.width)), pygame.SRCALPHA)
+                pygame.draw.circle(mask, (255, 255, 255, 255), (square_rect.width//2, square_rect.width//2), square_rect.width//2)
+
                 screen.blit(image, img_positions[img_index])
+                screen.blit(mask, img_positions[img_index], special_flags=pygame.BLEND_RGBA_MULT)
                 img_index += 1
 
             if new_playlist_button_clicked:
