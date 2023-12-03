@@ -19,27 +19,22 @@ GRAY = (128, 128, 128)
 ID = 0
 NAME = 1
 ALBUM = 2
-ALBUM_ID = 3
-ARTISTS = 4
-ARTIST_IDS = 5
-TRACK_NUMBER = 6
-DISC_NUMBER = 7
-EXPLICIT = 8
-DANCEABILITY = 9
-ENERGY = 10
-KEY = 11
-LOUDNESS = 12
-MODE = 13
-SPEECHINESS = 14
-ACOUSTICNESS = 15
-INSTRUMENTALNESS = 16
-LIVENESS = 17
-VALENCE = 18
-TEMPO = 19
-DURATION_ms = 20
-TIME_SIGNATURE = 21
-YEAR = 22
-RELEASE_DATE = 23
+ARTISTS = 3
+EXPLICIT = 4
+DANCEABILITY = 5
+ENERGY = 6
+KEY = 7
+LOUDNESS = 8
+MODE = 9
+SPEECHINESS = 10
+ACOUSTICNESS = 11
+INSTRUMENTALNESS = 12
+LIVENESS = 13
+VALENCE = 14
+TEMPO = 15
+DURATION_milsecs = 16
+YEAR = 17
+DURATION_mins = 18
 link = 'https://static.wikia.nocookie.net/gensin-impact/images/2/21/Neuvillette_Icon.png/revision/latest/scale-to-width/360?cb=20230927021051'
 
 # TODO: it would be easier to get/print user input data through the terminal
@@ -48,18 +43,63 @@ link = 'https://static.wikia.nocookie.net/gensin-impact/images/2/21/Neuvillette_
 
 
 # TODO: start making the data structures and algorithms
-# priority queue (heap) vs ????
-# maybe add this feature: option to upload generated playlist to user's spotify account
 
 def main():
-    songs_list = get_songs_from_file(5, "tracks_features.csv")
+    songs_list = get_songs_from_file("tracks_features_condensed.csv", 5)
 
     img_urls = [link, link, link, link, link, link, link, link]
     # img_urls = []
     # for song in songs_list:
     # img_urls.append(get_album_track_img(song[ID]))
 
-    display_playlist(img_urls)
+    user_priorities = get_user_input()
+
+    print()
+    next_step = input("Type (Y) to open playlist recommendation screen or type any other key to exit the program: ")
+    if next_step.lower() == "y":
+        display_playlist(img_urls)
+    print()
+    print("Thank You For Using McMichMixMigee Playlist Generator :)")
+
+
+def get_user_input():
+    user_priorities = []
+    welcome_msg = "Welcome to McMichMixMigee Playlist Generator!"
+    msg_length = len(welcome_msg) / 2
+    while msg_length > 0:
+        print("_ ", end="")
+        msg_length -= 1
+    print()
+    print(welcome_msg)
+    print()
+    print("Priority is an integer from 1 (most important) to 19 (least important)")
+    print("You can give different features the same priorities.\n")
+    print(f"Available Playlist Features:\n"
+          f"1. INSTRUMENTALNESS\n"
+          f"2. LOUDNESS\n"
+          f"3. ALBUM\n"
+          f"4. ARTISTS\n"
+          f"5. EXPLICIT\n"
+          f"6. ACOUSTICNESS\n"
+          f"7. RELEASE_DATE\n"
+          f"8. KEY\n"
+          f"9. NAME\n"
+          f"10. MODE\n"
+          f"11. DANCEABILITY\n"
+          f"12. LIVENESS\n"
+          f"13. VALENCE\n"
+          f"14. TEMPO\n"
+          f"15. SPEECHINESS\n"
+          f"16. DURATION (mins)\n"
+          f"17. ENERGY\n")
+    for feature in playlist_features.available_features:
+        p = input(f"Input priority for feature - {feature}: ")
+        while not p.isnumeric() or int(p) > 19 or int(p) < 1:
+            print("Invalid Input! Enter an integer from 1 to 19")
+            p = input(f"Input priority for feature - {feature}: ")
+        user_priorities.append((p, feature))
+    print()
+    return user_priorities
 
 
 # Function to display playlist of selected songs
@@ -73,7 +113,7 @@ def display_playlist(image_urls):
     # Set up display
     width, height = 800, 600
     screen = pygame.display.set_mode((width, height))
-    pygame.display.set_caption("GrooveCraft Menu")
+    pygame.display.set_caption("McMichMixMigee Menu")
 
     clock = pygame.time.Clock()
 
@@ -187,7 +227,7 @@ def load_image_from_url(url, img_dimensions=(100, 100)):
 
 
 # reads file and returns list of songs data
-def get_songs_from_file(num_of_songs=5, filename="tracks_features.csv"):
+def get_songs_from_file(filename, num_of_songs=5):
     lines = []
     file = open(filename, encoding='utf-8')
     line_index = 0
