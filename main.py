@@ -19,22 +19,27 @@ GRAY = (128, 128, 128)
 ID = 0
 NAME = 1
 ALBUM = 2
-ARTISTS = 3
-EXPLICIT = 4
-DANCEABILITY = 5
-ENERGY = 6
-KEY = 7
-LOUDNESS = 8
-MODE = 9
-SPEECHINESS = 10
-ACOUSTICNESS = 11
-INSTRUMENTALNESS = 12
-LIVENESS = 13
-VALENCE = 14
-TEMPO = 15
-DURATION_milsecs = 16
-YEAR = 17
-DURATION_mins = 18
+ALBUM_ID = 3
+ARTISTS = 4
+ARTIST_IDS = 5
+TRACK_NUMBER = 6
+DISC_NUMBER = 7
+EXPLICIT = 8
+DANCEABILITY = 9
+ENERGY = 10
+KEY = 11
+LOUDNESS = 12
+MODE = 13
+SPEECHINESS = 14
+ACOUSTICNESS = 15
+INSTRUMENTALNESS = 16
+LIVENESS = 17
+VALENCE = 18
+TEMPO = 19
+DURATION_ms = 20
+TIME_SIGNATURE = 21
+YEAR = 22
+RELEASE_DATE = 23
 link = 'https://static.wikia.nocookie.net/gensin-impact/images/2/21/Neuvillette_Icon.png/revision/latest/scale-to-width/360?cb=20230927021051'
 
 # TODO: it would be easier to get/print user input data through the terminal
@@ -43,65 +48,18 @@ link = 'https://static.wikia.nocookie.net/gensin-impact/images/2/21/Neuvillette_
 
 
 # TODO: start making the data structures and algorithms
+# priority queue (heap) vs ????
+# maybe add this feature: option to upload generated playlist to user's spotify account
 
 def main():
-    songs_list = get_songs_from_file("tracks_features_condensed.csv", 5)
+    songs_list = get_songs_from_file(5, "tracks_features.csv")
 
     img_urls = [link, link, link, link, link, link, link, link]
     # img_urls = []
     # for song in songs_list:
     # img_urls.append(get_album_track_img(song[ID]))
 
-
-    #commentted out to test pygame
-    #user_priorities = get_user_input()
-
-    print()
-    next_step = input("Type (Y) to open playlist recommendation screen or type any other key to exit the program: ")
-    if next_step.lower() == "y":
-        display_playlist(img_urls)
-    print()
-    print("Thank You For Using McMichMixMigee Playlist Generator :)")
-
-
-def get_user_input():
-    user_priorities = []
-    welcome_msg = "Welcome to McMichMixMigee Playlist Generator!"
-    msg_length = len(welcome_msg) / 2
-    while msg_length > 0:
-        print("_ ", end="")
-        msg_length -= 1
-    print()
-    print(welcome_msg)
-    print()
-    print("Priority is an integer from 1 (most important) to 19 (least important)")
-    print("You can give different features the same priorities.\n")
-    print(f"Available Playlist Features:\n"
-          f"1. INSTRUMENTALNESS\n"
-          f"2. LOUDNESS\n"
-          f"3. ALBUM\n"
-          f"4. ARTISTS\n"
-          f"5. EXPLICIT\n"
-          f"6. ACOUSTICNESS\n"
-          f"7. RELEASE_DATE\n"
-          f"8. KEY\n"
-          f"9. NAME\n"
-          f"10. MODE\n"
-          f"11. DANCEABILITY\n"
-          f"12. LIVENESS\n"
-          f"13. VALENCE\n"
-          f"14. TEMPO\n"
-          f"15. SPEECHINESS\n"
-          f"16. DURATION (mins)\n"
-          f"17. ENERGY\n")
-    for feature in playlist_features.available_features:
-        p = input(f"Input priority for feature - {feature}: ")
-        while not p.isnumeric() or int(p) > 19 or int(p) < 1:
-            print("Invalid Input! Enter an integer from 1 to 19")
-            p = input(f"Input priority for feature - {feature}: ")
-        user_priorities.append((p, feature))
-    print()
-    return user_priorities
+    display_playlist(img_urls)
 
 
 # Function to display playlist of selected songs
@@ -115,7 +73,7 @@ def display_playlist(image_urls):
     # Set up display
     width, height = 800, 600
     screen = pygame.display.set_mode((width, height))
-    pygame.display.set_caption("McMichMixMigee Menu")
+    pygame.display.set_caption("GrooveCraft Menu")
 
     clock = pygame.time.Clock()
 
@@ -126,8 +84,14 @@ def display_playlist(image_urls):
     for url in image_urls:
         images.append(load_image_from_url(url))
 
-    # checkboxes section
     checkboxes = []
+    slider_rects = []
+    slider_color = (50, 150, 255)
+    handle_radius = 10
+    handle_color = (255, 255, 255)
+
+    slider_values = [0]*len(playlist_features.available_features)
+
     index = 0
     x_dimension = 15
     y_dimension = 15
@@ -139,11 +103,18 @@ def display_playlist(image_urls):
         else:
             x_dimension = prev_x_dimension + 165
         checkboxes.append(Checkbox(x_dimension, y_dimension, feature))
+        slider_rects.append(pygame.Rect(x_dimension + 8, y_dimension + 25, 140, 10))
+
+
         index += 1
         prev_x_dimension = x_dimension
 
+
+
+
     # Main game loop
     running = True
+    mouse_drag = False
     while running:
         screen.fill(GRAY)
 
@@ -155,9 +126,32 @@ def display_playlist(image_urls):
                     for checkbox in checkboxes:
                         if checkbox.rect.collidepoint(event.pos):
                             checkbox.checked = not checkbox.checked
+                mouse_drag = True
+            elif event.type == pygame.MOUSEBUTTONUP:
+                mouse_drag = False
+
+
+
 
         for checkbox in checkboxes:
             checkbox.display(screen, font)
+
+        for i in range(len(slider_rects)):
+            if checkboxes[i].checked:
+                if mouse_drag and slider_rects[i].collidepoint(event.pos):
+                    slider_values[i] = max(0, min((event.pos[0] - slider_rects[i].left) / slider_rects[i].width, 1))
+
+                pygame.draw.rect(screen, slider_color, slider_rects[i])
+                handle_x = slider_rects[i].left + int(slider_rects[i].width * slider_values[i])
+                pygame.draw.circle(screen, handle_color, (handle_x, slider_rects[i].centery), handle_radius)
+
+
+
+
+
+
+
+
 
         # button for playlist generation
         generate_playlist_button_rect = pygame.Rect(500, 200, 100, 50)
@@ -196,16 +190,9 @@ def display_playlist(image_urls):
             # draw album images on screen
             img_positions = [(125, 325), (275, 325), (425, 325), (575, 325),
                              (125, 475), (275, 475), (425, 475), (575, 475)]
-
             img_index = 0
             for image in images:
-                #creating a circular mask which over
-                square_rect = image.get_rect()
-                mask = pygame.Surface((int(square_rect.width), int(square_rect.width)), pygame.SRCALPHA)
-                pygame.draw.circle(mask, (255, 255, 255, 255), (square_rect.width//2, square_rect.width//2), square_rect.width//2)
-
                 screen.blit(image, img_positions[img_index])
-                screen.blit(mask, img_positions[img_index], special_flags=pygame.BLEND_RGBA_MULT)
                 img_index += 1
 
             if new_playlist_button_clicked:
@@ -237,7 +224,7 @@ def load_image_from_url(url, img_dimensions=(100, 100)):
 
 
 # reads file and returns list of songs data
-def get_songs_from_file(filename, num_of_songs=5):
+def get_songs_from_file(num_of_songs=5, filename="tracks_features.csv"):
     lines = []
     file = open(filename, encoding='utf-8')
     line_index = 0
@@ -277,3 +264,24 @@ def get_album_track_img(track_id):
 if __name__ == '__main__':
     main()
 
+def heapSort(array):
+    for index in range(len(array)/2 - 1):
+        i = index
+        while i < len(array)/2 - 1:
+            if array[i] < array[i * 2 + 1] < array[i * 2 + 2]:
+                array[i], array[i*2 + 1] = array[i*2+1], array[i]
+                i = i * 2 + 1
+            elif array[i] < array[i*2 + 2]:
+                array[i], array[i*2 + 2] = array[i*2 + 2], array[i]
+                i = i*2 + 2
+
+    for y in range(len(array) - 1, 0, -1):
+        i = 0
+        array[0], array[y] = array[y], array[0]
+        while i < y/2 - 1:
+            if array[i] < array[i * 2 + 1] < array[i * 2 + 2]:
+                array[i], array[i * 2 + 1] = array[i * 2 + 1], array[i]
+                i = i * 2 + 1
+            elif array[i] < array[i * 2 + 2]:
+                array[i], array[i * 2 + 2] = array[i * 2 + 2], array[i]
+                i = i * 2 + 2
