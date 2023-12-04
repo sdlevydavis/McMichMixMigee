@@ -6,16 +6,20 @@ import requests
 from io import BytesIO
 from checkbox import Checkbox
 import playlist_features
-from SortingAlgs import quick_sort
+from SortingAlgs import merge_sort
 
 
-DATA_SET_SIZE = 100  # set data set size (can't be more than ~ 1 million)
-DATA_FILE = "tracks_features_condensed.csv"  # set data set file name
-GRAY = (128, 128, 128)  # set-up screen color
+# formatting messed up if cell in csv file has extra commas, so far only checked up to row 300,000
+MAX_DATA_SET_SIZE = 300000
+# set data set size
+DATA_SET_SIZE = 100
+# set data set file name
+DATA_FILE = "tracks_features_condensed.csv"
+# index of features data set file
 feature_indices = {"ID": 0, "NAME": 1, "ALBUM": 2, "ARTISTS": 3, "EXPLICIT": 4,
                    "DANCEABILITY": 5, "ENERGY": 6, "KEY": 7, "MODE": 8,
                    "ACOUSTICNESS": 9, "INSTRUMENTALNESS": 10, "VALENCE": 11,
-                   "TEMPO": 12, "DURATION (mins)": 13, "YEAR": 14, "POINTS": 15}  # index of features data set file
+                   "TEMPO": 12, "DURATION (mins)": 13, "YEAR": 14, "POINTS": 15}
 
 # image url used for testing
 link = 'https://static.wikia.nocookie.net/gensin-impact/images/2/21/' \
@@ -96,7 +100,7 @@ def load_user_input(slider_values, checkboxes, check_order):
 
 # function to display playlist of selected songs
 def display_playlist(songs_list):
-    # True is heap sort, False is Quick sort
+    # True is heap sort, False is Merge sort
     sort_mode = True
 
     # positions that album images will be display at
@@ -115,8 +119,8 @@ def display_playlist(songs_list):
 
     # set-up toggle switch for sort mode
     heap_text = "HEAP SORT"
-    quick_text = "QUICK SORT"
-    sort_mode_instructions_text = "Press (H) for Heap Sort or (Q) for Quick Sort"
+    merge_text = "MERGE SORT"
+    sort_mode_instructions_text = "Press (H) for Heap Sort or (M) for Merge Sort"
     sort_mode_button_rect = pygame.Rect(50, 220, 100, 50)
     sort_mode_button_color = (50, 150, 255)
 
@@ -190,7 +194,7 @@ def display_playlist(songs_list):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     sort_mode = True
-                elif event.key == pygame.K_q:
+                elif event.key == pygame.K_m:
                     sort_mode = False
 
         for checkbox in checkboxes:
@@ -235,9 +239,9 @@ def display_playlist(songs_list):
 
                 # determine sort_mode to choose sort algorithm
                 if sort_mode:
-                    song_id_points_name_list = quick_sort(song_id_points_name_list)
+                    song_id_points_name_list = merge_sort(song_id_points_name_list)
                 else:
-                    song_id_points_name_list = quick_sort(song_id_points_name_list)
+                    song_id_points_name_list = merge_sort(song_id_points_name_list)
 
 
                 # get last 8 songs and their corresponding album cover images
@@ -290,7 +294,7 @@ def display_playlist(songs_list):
         if sort_mode:
             surf_sort = font_big.render(heap_text, True, (255, 255, 255))
         else:
-            surf_sort = font_big.render(quick_text, True, (255, 255, 255))
+            surf_sort = font_big.render(merge_text, True, (255, 255, 255))
         text_rect_sort = surf_sort.get_rect()
         text_rect_sort.center = (100, 245)  # +70 y to recbox
 
@@ -414,6 +418,7 @@ def load_songs_points(songs_list, user_requirements):
         key_feature_points = user_requirements["KEY"][0]
         actual_key = song[feature_indices["KEY"]]
         expected_key = user_requirements["KEY"][1]
+
         percent_error = abs(float(expected_key) - float(actual_key)) / float(11)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
