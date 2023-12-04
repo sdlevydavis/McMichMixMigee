@@ -89,7 +89,7 @@ def display_playlist(songs_list):
     # set-up button for playlist generation
     generate_text = "GENERATE PLAYLIST"
     generate_playlist_button_clicked = False
-    generate_playlist_button_rect = pygame.Rect(325, 150, 150, 50)
+    generate_playlist_button_rect = pygame.Rect(325, 220, 150, 50)
     generate_playlist_button_color = (50, 150, 255)
     generate_playlist_button_hover_color = (100, 200, 255)
     current_generate_button_color = generate_playlist_button_color
@@ -105,9 +105,9 @@ def display_playlist(songs_list):
     clock = pygame.time.Clock()
 
     font = pygame.font.Font("SegUIVar.ttf", 14)
-    surf = font.render(generate_text, True, (0, 0, 0))
+    surf = font.render(generate_text, True, (255,255,255))
     text_rect = surf.get_rect()
-    text_rect.center = (400, 175)
+    text_rect.center = (400, 245) #+70 y to recbox
 
     checkboxes = []
     slider_rects = []
@@ -122,7 +122,7 @@ def display_playlist(songs_list):
     y_dimension = 15
     prev_x_dimension = 0
     for feature in playlist_features.available_features:
-        if index % 5 == 0:
+        if index % 4 == 0:
             x_dimension = 15
             y_dimension = 15 * (index + 1)
         else:
@@ -136,7 +136,7 @@ def display_playlist(songs_list):
     running = True
     mouse_drag = False
     while running:
-        screen.fill(GRAY)
+        screen.fill((0,0,0))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -231,7 +231,7 @@ def display_playlist(songs_list):
             # print("loaded data")  # for debugging purposes
 
         # draw generate playlist button
-        pygame.draw.rect(screen, current_generate_button_color, generate_playlist_button_rect)
+        pygame.draw.rect(screen, current_generate_button_color, generate_playlist_button_rect,border_radius=50)
 
         screen.blit(surf, text_rect)
 
