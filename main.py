@@ -119,8 +119,8 @@ def display_playlist(songs_list):
 
     # set-up toggle switch for sort mode
     heap_text = "HEAP SORT"
-    bucket_text = "BUCKET SORT"
-    sort_mode_instructions_text = "Press (H) for Heap Sort or (B) for Bucket Sort"
+    merge_text = "MERGE SORT"
+    sort_mode_instructions_text = "Press (H) for Heap Sort or (M) for Merge Sort"
     sort_mode_button_rect = pygame.Rect(50, 220, 100, 50)
     sort_mode_button_color = (50, 150, 255)
 
@@ -194,7 +194,7 @@ def display_playlist(songs_list):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     sort_mode = True
-                elif event.key == pygame.K_b:
+                elif event.key == pygame.K_m:
                     sort_mode = False
 
         for checkbox in checkboxes:
@@ -243,50 +243,46 @@ def display_playlist(songs_list):
             if not skip_reloading_data:
                 skip_reloading_data = True
                 # list of user's decided feature priorities
-                user_requirements = fake_get_user_input(slider_decimal, checkboxes,
+                user_requirements = load_user_input(slider_decimal, checkboxes,
                                                         checkOrder)  # delete this later and replace with data from scroll_bars
-                song_id_points_pair_list = load_songs_points(songs_list, user_requirements)
-                # print(song_id_points_pair_list)  # for debugging purposes
+                song_id_points_name_list = load_songs_points(songs_list, user_requirements)
 
-                """ 
-                # 1. determine sort_mode to choose sort algorithm
+                elapsed_time_ms = -1
+                # determine sort_mode to choose sort algorithm
+                if sort_mode:
+                    # measure execution time
+                    start = time.time()
+                    heapSort(song_id_points_name_list)
+                    end = time.time()
+                    elapsed_time_ms = (end - start) * 1e3
 
-                    if sort_mode:
-                        heap_sort(song_points_pair_list)
-                    else:
-                        bucket_sort(song_points_pair_list)
+                else:
+                    # measure execution time
+                    start = time.time()
+                    song_id_points_name_list = merge_sort(song_id_points_name_list)
+                    end = time.time()
+                    elapsed_time_ms = (end - start) * 1e3
 
-                # 2. get top 8 songs and their corresponding album cover images
 
-                    song_points_pair_list = sort(song_points_pair_list)
-                    selected_song_ids = [] # top 8 songs from sorted song_points_pair_list
-                    image_urls = []
-                    for song_id in selected_song_ids:
-                        image_urls.append(get_album_track_img(song_id)
-
-                    print_playlist_data(selected_song_ids)  # prints generated playlist data
-
-                """
-
-                # replace below block of code after implementing sorting
+                # get last 8 songs and their corresponding album cover images
+                list_length = len(song_id_points_name_list)
                 selected_song_ids = []
-                selected_songs = []
+                selected_song_names = []
                 image_urls = []
-                song_count = 1
-                max_index = len(songs_list) - 1
-                while song_count < 9:
-                    rand_index = random.randint(0, max_index)
-                    song = songs_list[rand_index]
-                    selected_songs.append(song)
-                    selected_song_ids.append(song[feature_indices["ID"]])
-                    image_urls.append(get_album_track_img(song[feature_indices["ID"]]))
-                    song_count += 1
+                for index in range(list_length-8, list_length):
+                    song_data = song_id_points_name_list[index]
+                    song_id = song_data[0]
+                    song_name = song_data[2]
+                    selected_song_ids.append(song_id)
+                    selected_song_names.append(song_name)
+                    image_urls.append(get_album_track_img(song_id))
+                # prints generated playlist data
+                print_playlist_data(selected_song_ids)
+                if sort_mode:
+                    print(f"\nExecution time using Heap Sort: {elapsed_time_ms} milliseconds")
+                else:
+                    print(f"\nExecution time using Merge Sort: {elapsed_time_ms} milliseconds")
 
-                print_playlist_data(selected_song_ids)  # prints generated playlist data
-            #song name list
-            song_names = []
-            for sel_song in selected_songs:
-                song_names.append(sel_song[1])
 
             # Load images from urls
             images = []
@@ -321,104 +317,11 @@ def display_playlist(songs_list):
                 img_index += 1
             # print("loaded data")  # for debugging purposes
 
-            #hover preiew feature
-            counter=0
-            hovered_song=""
-            for rect in image_rect_list:
-                if rect.collidepoint(mouse_x, mouse_y):
-                    break
-                counter += 1
-            if(counter<8):
-                hovered_song=selected_songs[counter]
-                print(hovered_song[1])
-                pygame.draw.rect(screen,(GRAY),((40,20),(700,150)),border_radius=20)
-                count=0
-                true_count=0
-                # 1name 2album 4artist 6trackNum 8explicit 9dancibility 10energy 11key 12loudness 13mode
-                for song in hovered_song:
-                    if (count==1) or (count==2) or (count==4) or (count==6) or (count==8) or (count==9) or (count==10) or (count==11) or (count==12) or (count==13) or (count==18) or (count==19):
-                        if(count==1): pre_text="Name:"
-                        if (count == 2): pre_text = "Album:"
-                        if (count == 4): pre_text = "Artist:"
-                        if (count == 6): pre_text = "Track:"
-                        if (count == 8): pre_text = "Explicit:"
-                        if (count == 9): pre_text = "dancibility:"
-                        if (count == 10): pre_text = "Energy:"
-                        if (count == 11): pre_text = "Key:"
-                        if (count == 12): pre_text = "Loudness:"
-                        if (count == 13): pre_text = "Mode:"
-                        if (count == 18): pre_text = "Valence:"
-                        if (count == 19): pre_text = "Tempo:"
-
-
-                        pre_text_surface = font.render(pre_text, True, (255, 255, 255))
-                        pre_text_rect = pre_text_surface.get_rect()
-                        pre_text_rect.topleft = (50 + true_count * 100, 30)
-                        if true_count == 1:
-                            pre_text_rect.topleft = (50 + (true_count - 1) * 100, 30 + 20)
-                        elif true_count == 2:
-                            pre_text_rect.topleft = (50 + (true_count - 2) * 100, 30 + 40)
-                        elif true_count == 3:
-                            pre_text_rect.topleft = (50 + (true_count - 3) * 100, 30 + 60)
-                        elif true_count==4:
-                            pre_text_rect.topleft = (50 + (true_count - 4) * 130, 30 + 80)
-                        elif true_count==5:
-                            pre_text_rect.topleft = (50 + (true_count - 5) * 130, 30 + 100)
-                        elif true_count==6:
-                            pre_text_rect.topleft = (50 + (true_count - 6) * 130+400, 30)
-                        elif true_count==7:
-                            pre_text_rect.topleft = (50 + (true_count - 7) * 130+400, 30+20)
-                        elif true_count==8:
-                            pre_text_rect.topleft = (50 + (true_count - 8) * 130+400, 30+40)
-                        elif true_count == 9:
-                            pre_text_rect.topleft = (50 + (true_count - 9) * 130 + 400, 30+60)
-                        elif true_count == 10:
-                            pre_text_rect.topleft = (50 + (true_count - 10) * 130 + 400, 30 + 80)
-                        elif true_count == 11:
-                            pre_text_rect.topleft = (50 + (true_count - 11) * 130 + 400, 30 + 100)
-                        screen.blit(pre_text_surface, pre_text_rect)
-
-                        text = hovered_song[count]
-                        if (count==1) or (count==2) or (count==4):
-                            text=text
-                        else:
-                            text=text[0:5]
-                        info_text_surface=font.render(text,True,(255,255,255))
-                        info_text_rect=info_text_surface.get_rect()
-                        info_text_rect.topleft=(100+true_count*100,30)
-                        if true_count==1:
-                            info_text_rect.topleft = (100 + (true_count-1) * 100, 30+ 20)
-                        elif true_count==2:
-                            info_text_rect.topleft = (100 + (true_count - 2) * 100, 30 + 40)
-                        elif true_count==3:
-                            info_text_rect.topleft = (100 + (true_count - 3) * 100, 30 + 60)
-                        elif true_count == 4:
-                            info_text_rect.topleft = (100 + (true_count - 4) * 130, 30 + 80)
-                        elif true_count == 5:
-                            info_text_rect.topleft = (100 + (true_count - 5) * 130+20, 30 + 100)
-                        elif true_count == 6:
-                            info_text_rect.topleft = (100 + (true_count - 6) * 130 + 400, 30)
-                        elif true_count == 7:
-                            info_text_rect.topleft = (100 + (true_count - 7) * 130 + 400-20, 30+20)
-                        elif true_count == 8:
-                            info_text_rect.topleft = (100 + (true_count - 8) * 130 + 400+18, 30+40)
-                        elif true_count == 9:
-                            info_text_rect.topleft = (100 + (true_count - 9) * 130 + 400-4, 30+60)
-                        elif true_count == 10:
-                            info_text_rect.topleft = (100 + (true_count - 10) * 130 + 400+3, 30 + 80)
-                        elif true_count == 11:
-                            info_text_rect.topleft = (100 + (true_count - 11) * 130 + 400, 30 + 100)
-                        screen.blit(info_text_surface,info_text_rect)
-                        true_count+=1
-                    count+=1
-
-
-
         # set sort-mode button text (H or B)
         if sort_mode:
             surf_sort = font_big.render(heap_text, True, (255, 255, 255))
         else:
-            surf_sort = font_big.render(bucket_text, True, (255, 255, 255))
+            surf_sort = font_big.render(merge_text, True, (255, 255, 255))
         text_rect_sort = surf_sort.get_rect()
         text_rect_sort.center = (100, 245)  # +70 y to recbox
 
