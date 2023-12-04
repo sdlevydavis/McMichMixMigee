@@ -6,20 +6,19 @@ import requests
 from io import BytesIO
 from checkbox import Checkbox
 import playlist_features
-from SortingAlgs import merge_sort
+import random
+
+# TODO: edit function -> load_songs_points()      !!! only tested one feature
+# TODO: add sorting algorithms
 
 
-# formatting messed up if cell in csv file has extra commas, so far only checked up to row 300,000
-MAX_DATA_SET_SIZE = 300000
-# set data set size
-DATA_SET_SIZE = 100
-# set data set file name
-DATA_FILE = "tracks_features_condensed.csv"
-# index of features data set file
+DATA_SET_SIZE = 100  # set data set size (can't be more than ~ 1 million)
+DATA_FILE = "tracks_features_condensed.csv"  # set data set file name
+GRAY = (128, 128, 128)  # set-up screen color
 feature_indices = {"ID": 0, "NAME": 1, "ALBUM": 2, "ARTISTS": 3, "EXPLICIT": 4,
-                   "DANCEABILITY": 5, "ENERGY": 6, "KEY": 7, "MODE": 8,
+                   "DANCEABILITY": 5, "ENERGY": 6, "KEY": 7, "Mode": 8,
                    "ACOUSTICNESS": 9, "INSTRUMENTALNESS": 10, "VALENCE": 11,
-                   "TEMPO": 12, "DURATION (mins)": 13, "YEAR": 14, "POINTS": 15}
+                   "TEMPO": 12, "DURATION (mins)": 13, "YEAR": 14, "POINTS": 15}  # index of features data set file
 
 # image url used for testing
 link = 'https://static.wikia.nocookie.net/gensin-impact/images/2/21/' \
@@ -29,6 +28,14 @@ link = 'https://static.wikia.nocookie.net/gensin-impact/images/2/21/' \
 def main():
     # read file and put song data in a list
     songs_list = get_songs_from_file(DATA_FILE, DATA_SET_SIZE)
+    display_playlist(songs_list)
+    print("\nThank You For Using McMichMixMigee Playlist Generator :)")
+
+
+def fake_get_user_input(slider_values, checkboxes, check_order):
+    priority_points = [0] * len(slider_values)
+    details = [1] * len(slider_values)
+    user_requirements = {}
     welcome_msg = "Welcome to McMichMixMigee Playlist Generator!"
     msg_length = len(welcome_msg) / 2
     while msg_length > 0:
@@ -52,14 +59,6 @@ def main():
           f"9. TEMPO\n"
           f"10. DURATION (mins)\n"
           f"11. YEAR\n")
-    display_playlist(songs_list)
-    print("\nThank You For Using McMichMixMigee Playlist Generator :)")
-
-
-def load_user_input(slider_values, checkboxes, check_order):
-    priority_points = [0] * len(slider_values)
-    details = [1] * len(slider_values)
-    user_requirements = {}
 
     for i in range(len(slider_values)):
         if checkboxes[i].checked:
@@ -95,12 +94,13 @@ def load_user_input(slider_values, checkboxes, check_order):
 
         user_requirements[playlist_features.available_features[i]] = (priority_points[i], details[i])
 
+    print()
     return user_requirements
 
 
 # function to display playlist of selected songs
 def display_playlist(songs_list):
-    # True is heap sort, False is Merge sort
+    # True is heap sort, False is bucket sort
     sort_mode = True
 
     # positions that album images will be display at
@@ -119,8 +119,8 @@ def display_playlist(songs_list):
 
     # set-up toggle switch for sort mode
     heap_text = "HEAP SORT"
-    merge_text = "MERGE SORT"
-    sort_mode_instructions_text = "Press (H) for Heap Sort or (M) for Merge Sort"
+    bucket_text = "BUCKET SORT"
+    sort_mode_instructions_text = "Press (H) for Heap Sort or (B) for Bucket Sort"
     sort_mode_button_rect = pygame.Rect(50, 220, 100, 50)
     sort_mode_button_color = (50, 150, 255)
 
@@ -183,7 +183,7 @@ def display_playlist(songs_list):
                             if checkboxes[i].checked:
                                 checkOrder.append(i)
                                 checkboxes[i].select = len(checkOrder)
-                                user_requirements = load_user_input(slider_decimal, checkboxes, checkOrder)
+                                user_requirements = fake_get_user_input(slider_decimal, checkboxes, checkOrder)
                             else:
                                 checkOrder.remove(i)
                                 for j in range(len(checkOrder)):
@@ -194,7 +194,7 @@ def display_playlist(songs_list):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     sort_mode = True
-                elif event.key == pygame.K_m:
+                elif event.key == pygame.K_b:
                     sort_mode = False
 
         for checkbox in checkboxes:
@@ -204,7 +204,7 @@ def display_playlist(songs_list):
             if checkboxes[i].checked:
                 if mouse_drag and slider_rects[i].collidepoint(event.pos):
                     slider_decimal[i] = max(0, min((event.pos[0] - slider_rects[i].left) / slider_rects[i].width, 1))
-                    user_requirements = load_user_input(slider_decimal, checkboxes, checkOrder)
+                    user_requirements = fake_get_user_input(slider_decimal, checkboxes, checkOrder)
 
                 pygame.draw.rect(screen, slider_color, slider_rects[i])
                 handle_x = slider_rects[i].left + int(slider_rects[i].width * slider_decimal[i])
@@ -232,39 +232,56 @@ def display_playlist(songs_list):
             if not skip_reloading_data:
                 skip_reloading_data = True
                 # list of user's decided feature priorities
-                user_requirements = load_user_input(slider_decimal, checkboxes,
+                user_requirements = fake_get_user_input(slider_decimal, checkboxes,
                                                         checkOrder)  # delete this later and replace with data from scroll_bars
-                song_id_points_name_list = load_songs_points(songs_list, user_requirements)
+                song_id_points_pair_list = load_songs_points(songs_list, user_requirements)
+                # print(song_id_points_pair_list)  # for debugging purposes
 
+                """ 
+                # 1. determine sort_mode to choose sort algorithm
 
-                # determine sort_mode to choose sort algorithm
-                if sort_mode:
-                    song_id_points_name_list = merge_sort(song_id_points_name_list)
-                else:
-                    song_id_points_name_list = merge_sort(song_id_points_name_list)
+                    if sort_mode:
+                        heap_sort(song_points_pair_list)
+                    else:
+                        bucket_sort(song_points_pair_list)
 
+                # 2. get top 8 songs and their corresponding album cover images
 
-                # get last 8 songs and their corresponding album cover images
-                list_length = len(song_id_points_name_list)
+                    song_points_pair_list = sort(song_points_pair_list)
+                    selected_song_ids = [] # top 8 songs from sorted song_points_pair_list
+                    image_urls = []
+                    for song_id in selected_song_ids:
+                        image_urls.append(get_album_track_img(song_id)
+
+                    print_playlist_data(selected_song_ids)  # prints generated playlist data
+
+                """
+
+                # replace below block of code after implementing sorting
                 selected_song_ids = []
-                selected_song_names = []
+                selected_songs = []
                 image_urls = []
-                for index in range(list_length-8, list_length):
-                    song_data = song_id_points_name_list[index]
-                    song_id = song_data[0]
-                    song_name = song_data[2]
-                    selected_song_ids.append(song_id)
-                    selected_song_names.append(song_name)
-                    image_urls.append(get_album_track_img(song_id))
-                # prints generated playlist data
-                print_playlist_data(selected_song_ids)
+                song_count = 1
+                max_index = len(songs_list) - 1
+                while song_count < 9:
+                    rand_index = random.randint(0, max_index)
+                    song = songs_list[rand_index]
+                    selected_songs.append(song)
+                    selected_song_ids.append(song[feature_indices["ID"]])
+                    image_urls.append(get_album_track_img(song[feature_indices["ID"]]))
+                    song_count += 1
 
+                print_playlist_data(selected_song_ids)  # prints generated playlist data
+            #song name list
+            song_names = []
+            for sel_song in selected_songs:
+                song_names.append(sel_song[1])
 
             # Load images from urls
             images = []
             for url in image_urls:
                 images.append(load_image_from_url(url))
-
+            image_rect_list=[]
             # draw album images on screen
             img_index = 0
             for image in images:
@@ -279,8 +296,11 @@ def display_playlist(songs_list):
                 pygame.draw.circle(screen, (255, 250, 250),
                                    ((img_positions[img_index][0] + adjust), img_positions[img_index][1] + adjust),
                                    square_rect.width // 2, width=3)
+                hover_surface=mask.get_rect()
+                hover_surface.topleft=img_positions[img_index]
+                image_rect_list.append(hover_surface)
                 #song name
-                name_surface = font_big.render(selected_song_names[img_index], True, (255, 255, 255))
+                name_surface = font_big.render(song_names[img_index], True, (255, 255, 255))
                 name_text_rect = name_surface.get_rect()
                 name_text_rect.center = (170+img_index*150, 430)
                 if img_index > 3:
@@ -288,13 +308,106 @@ def display_playlist(songs_list):
                 screen.blit(name_surface, name_text_rect)
 
                 img_index += 1
+            # print("loaded data")  # for debugging purposes
+
+            #hover preiew feature
+            counter=0
+            hovered_song=""
+            for rect in image_rect_list:
+                if rect.collidepoint(mouse_x, mouse_y):
+                    break
+                counter += 1
+            if(counter<8):
+                hovered_song=selected_songs[counter]
+                print(hovered_song[1])
+                pygame.draw.rect(screen,(GRAY),((40,20),(700,150)),border_radius=20)
+                count=0
+                true_count=0
+                # 1name 2album 4artist 6trackNum 8explicit 9dancibility 10energy 11key 12loudness 13mode
+                for song in hovered_song:
+                    if (count==1) or (count==2) or (count==4) or (count==6) or (count==8) or (count==9) or (count==10) or (count==11) or (count==12) or (count==13) or (count==18) or (count==19):
+                        if(count==1): pre_text="Name:"
+                        if (count == 2): pre_text = "Album:"
+                        if (count == 4): pre_text = "Artist:"
+                        if (count == 6): pre_text = "Track:"
+                        if (count == 8): pre_text = "Explicit:"
+                        if (count == 9): pre_text = "dancibility:"
+                        if (count == 10): pre_text = "Energy:"
+                        if (count == 11): pre_text = "Key:"
+                        if (count == 12): pre_text = "Loudness:"
+                        if (count == 13): pre_text = "Mode:"
+                        if (count == 18): pre_text = "Valence:"
+                        if (count == 19): pre_text = "Tempo:"
+
+
+                        pre_text_surface = font.render(pre_text, True, (255, 255, 255))
+                        pre_text_rect = pre_text_surface.get_rect()
+                        pre_text_rect.topleft = (50 + true_count * 100, 30)
+                        if true_count == 1:
+                            pre_text_rect.topleft = (50 + (true_count - 1) * 100, 30 + 20)
+                        elif true_count == 2:
+                            pre_text_rect.topleft = (50 + (true_count - 2) * 100, 30 + 40)
+                        elif true_count == 3:
+                            pre_text_rect.topleft = (50 + (true_count - 3) * 100, 30 + 60)
+                        elif true_count==4:
+                            pre_text_rect.topleft = (50 + (true_count - 4) * 130, 30 + 80)
+                        elif true_count==5:
+                            pre_text_rect.topleft = (50 + (true_count - 5) * 130, 30 + 100)
+                        elif true_count==6:
+                            pre_text_rect.topleft = (50 + (true_count - 6) * 130+400, 30)
+                        elif true_count==7:
+                            pre_text_rect.topleft = (50 + (true_count - 7) * 130+400, 30+20)
+                        elif true_count==8:
+                            pre_text_rect.topleft = (50 + (true_count - 8) * 130+400, 30+40)
+                        elif true_count == 9:
+                            pre_text_rect.topleft = (50 + (true_count - 9) * 130 + 400, 30+60)
+                        elif true_count == 10:
+                            pre_text_rect.topleft = (50 + (true_count - 10) * 130 + 400, 30 + 80)
+                        elif true_count == 11:
+                            pre_text_rect.topleft = (50 + (true_count - 11) * 130 + 400, 30 + 100)
+                        screen.blit(pre_text_surface, pre_text_rect)
+
+                        text = hovered_song[count]
+                        if (count==1) or (count==2) or (count==4):
+                            text=text
+                        else:
+                            text=text[0:5]
+                        info_text_surface=font.render(text,True,(255,255,255))
+                        info_text_rect=info_text_surface.get_rect()
+                        info_text_rect.topleft=(100+true_count*100,30)
+                        if true_count==1:
+                            info_text_rect.topleft = (100 + (true_count-1) * 100, 30+ 20)
+                        elif true_count==2:
+                            info_text_rect.topleft = (100 + (true_count - 2) * 100, 30 + 40)
+                        elif true_count==3:
+                            info_text_rect.topleft = (100 + (true_count - 3) * 100, 30 + 60)
+                        elif true_count == 4:
+                            info_text_rect.topleft = (100 + (true_count - 4) * 130, 30 + 80)
+                        elif true_count == 5:
+                            info_text_rect.topleft = (100 + (true_count - 5) * 130+20, 30 + 100)
+                        elif true_count == 6:
+                            info_text_rect.topleft = (100 + (true_count - 6) * 130 + 400, 30)
+                        elif true_count == 7:
+                            info_text_rect.topleft = (100 + (true_count - 7) * 130 + 400-20, 30+20)
+                        elif true_count == 8:
+                            info_text_rect.topleft = (100 + (true_count - 8) * 130 + 400+18, 30+40)
+                        elif true_count == 9:
+                            info_text_rect.topleft = (100 + (true_count - 9) * 130 + 400-4, 30+60)
+                        elif true_count == 10:
+                            info_text_rect.topleft = (100 + (true_count - 10) * 130 + 400+3, 30 + 80)
+                        elif true_count == 11:
+                            info_text_rect.topleft = (100 + (true_count - 11) * 130 + 400, 30 + 100)
+                        screen.blit(info_text_surface,info_text_rect)
+                        true_count+=1
+                    count+=1
+
 
 
         # set sort-mode button text (H or B)
         if sort_mode:
             surf_sort = font_big.render(heap_text, True, (255, 255, 255))
         else:
-            surf_sort = font_big.render(merge_text, True, (255, 255, 255))
+            surf_sort = font_big.render(bucket_text, True, (255, 255, 255))
         text_rect_sort = surf_sort.get_rect()
         text_rect_sort.center = (100, 245)  # +70 y to recbox
 
@@ -325,153 +438,153 @@ def display_playlist(songs_list):
 
 # function to update and return list of song ids and their point
 def load_songs_points(songs_list, user_requirements):
-    # (percentage of points allocated based on how close it is to user's desired qualities)
+    # (percentage of points allocated based on how close it is to user's desired mins)
+
     # this loop updates all songs' total points
     # *** points is 0th index of pair user_requirements in map || details is 1st index of pair in  user_requirements map
-    count = 1
+    # song_num = 1
     for song in songs_list:
 
         # -- Feature: Duration --
         duration_feature_points = user_requirements["DURATION (mins)"][0]
         actual_duration = song[feature_indices["DURATION (mins)"]]
         expected_duration = user_requirements["DURATION (mins)"][1]
-        percent_error = abs(float(expected_duration) - float(actual_duration)) / float(5)
+        percent_error = abs(float(expected_duration) - float(actual_duration)) / float(expected_duration)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(duration_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Year --
         year_feature_points = user_requirements["YEAR"][0]
         actual_year = song[feature_indices["YEAR"]]
         expected_year = user_requirements["YEAR"][1]
-        percent_error = abs(float(expected_year) - float(actual_year)) / float(83)
+        percent_error = abs(float(expected_year) - float(actual_year)) / float(expected_year)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(year_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        """
+        # TODO: this has not been tested ---------------------
         # -- Feature Tempo --
         tempo_feature_points = user_requirements["TEMPO"][0]
         actual_tempo = song[feature_indices["TEMPO"]]
         expected_tempo = user_requirements["TEMPO"][1]
-        percent_error = abs(float(expected_tempo) - float(actual_tempo)) / float(248)
+        percent_error = abs(float(expected_tempo) - float(actual_tempo)) / float(expected_tempo)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(tempo_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)        
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Valence --
         valence_feature_points = user_requirements["VALENCE"][0]
         actual_valence = song[feature_indices["VALENCE"]]
         expected_valence = user_requirements["VALENCE"][1]
-        percent_error = abs(float(expected_valence) - float(actual_valence))
+        percent_error = abs(float(expected_valence) - float(actual_valence)) / float(expected_valence)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(valence_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Instrumentalness --
         instr_feature_points = user_requirements["INSTRUMENTALNESS"][0]
         actual_instr = song[feature_indices["INSTRUMENTALNESS"]]
         expected_instr = user_requirements["INSTRUMENTALNESS"][1]
-        percent_error = abs(float(expected_instr) - float(actual_instr))
+        percent_error = abs(float(expected_instr) - float(actual_instr)) / float(expected_instr)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(instr_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Acousticness --
         acoustic_feature_points = user_requirements["ACOUSTICNESS"][0]
         actual_acoustic = song[feature_indices["ACOUSTICNESS"]]
         expected_acoustic = user_requirements["ACOUSTICNESS"][1]
-        percent_error = abs(float(expected_acoustic) - float(actual_acoustic))
+        percent_error = abs(float(expected_acoustic) - float(actual_acoustic)) / float(expected_acoustic)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(acoustic_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Mode --
         mode_feature_points = user_requirements["MODE"][0]
         actual_mode = song[feature_indices["MODE"]]
         expected_mode = user_requirements["MODE"][1]
-        if str(actual_mode) == str(expected_mode):
-            points_to_allocate = mode_feature_points
+        percent_error = abs(float(expected_mode) - float(actual_mode)) / float(expected_mode)
+        if percent_error > 1:
+            points_to_allocate = 0  # difference in values was too large so no points added
         else:
-            points_to_allocate = 0
+            points_to_allocate = (1 - percent_error) * float(mode_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Key --
         key_feature_points = user_requirements["KEY"][0]
         actual_key = song[feature_indices["KEY"]]
         expected_key = user_requirements["KEY"][1]
-
-        percent_error = abs(float(expected_key) - float(actual_key)) / float(11)
+        percent_error = abs(float(expected_key) - float(actual_key)) / float(expected_key)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(key_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Energy --
         energy_feature_points = user_requirements["ENERGY"][0]
         actual_energy = song[feature_indices["ENERGY"]]
         expected_energy = user_requirements["ENERGY"][1]
-        percent_error = abs(float(expected_energy) - float(actual_energy))
+        percent_error = abs(float(expected_energy) - float(actual_energy)) / float(expected_energy)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(energy_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Danceability --
         dance_feature_points = user_requirements["DANCEABILITY"][0]
         actual_dance = song[feature_indices["DANCEABILITY"]]
         expected_dance = user_requirements["DANCEABILITY"][1]
-        percent_error = abs(float(expected_dance) - float(actual_dance))
+        percent_error = abs(float(expected_dance) - float(actual_dance)) / float(expected_dance)
         if percent_error > 1:
             points_to_allocate = 0  # difference in values was too large so no points added
         else:
             points_to_allocate = (1 - percent_error) * float(dance_feature_points)
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
 
-
+        # TODO: this has not been tested ---------------------
         # -- Feature Explicit --
         explicit_feature_points = user_requirements["EXPLICIT"][0]
         actual_explicit = song[feature_indices["EXPLICIT"]]
-        if actual_explicit == 'FALSE':
-            actual_explicit = 0
-        else:
-            actual_explicit = 1
         expected_explicit = user_requirements["EXPLICIT"][1]
         if actual_explicit == expected_explicit:
             points_to_allocate = explicit_feature_points
         else:
             points_to_allocate = 0
         song[feature_indices["POINTS"]] = str(float(song[feature_indices["POINTS"]]) + points_to_allocate)
+        """
 
-    # makes a new list from song list that stores pairs (song_id, total points, song_name)
-    song_id_points_name_list = []
+    # makes a new list from song list that stores pairs (track_id, total points)
+    # TODO: ask michael if pair should be (total points, track_id)
+    song_id_points_pair_list = []
     for song in songs_list:
-        song_id_points_name_list.append(
-            (song[feature_indices["ID"]], float(song[feature_indices["POINTS"]].replace("\n", "")), song[feature_indices['NAME']]))
+        song_id_points_pair_list.append(
+            (song[feature_indices["ID"]], float(song[feature_indices["POINTS"]].replace("\n", ""))))
 
-    return song_id_points_name_list
+    return song_id_points_pair_list
 
 
 # funtion to load an image from a URL
