@@ -6,7 +6,7 @@ import requests
 from io import BytesIO
 from checkbox import Checkbox
 import playlist_features
-from SortingAlgs import merge_sort
+from SortingAlgs import quick_sort
 
 
 DATA_SET_SIZE = 100  # set data set size (can't be more than ~ 1 million)
@@ -96,7 +96,7 @@ def load_user_input(slider_values, checkboxes, check_order):
 
 # function to display playlist of selected songs
 def display_playlist(songs_list):
-    # True is heap sort, False is bucket sort
+    # True is heap sort, False is Quick sort
     sort_mode = True
 
     # positions that album images will be display at
@@ -115,8 +115,8 @@ def display_playlist(songs_list):
 
     # set-up toggle switch for sort mode
     heap_text = "HEAP SORT"
-    bucket_text = "BUCKET SORT"
-    sort_mode_instructions_text = "Press (H) for Heap Sort or (B) for Bucket Sort"
+    quick_text = "QUICK SORT"
+    sort_mode_instructions_text = "Press (H) for Heap Sort or (Q) for Quick Sort"
     sort_mode_button_rect = pygame.Rect(50, 220, 100, 50)
     sort_mode_button_color = (50, 150, 255)
 
@@ -190,7 +190,7 @@ def display_playlist(songs_list):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     sort_mode = True
-                elif event.key == pygame.K_b:
+                elif event.key == pygame.K_q:
                     sort_mode = False
 
         for checkbox in checkboxes:
@@ -235,9 +235,9 @@ def display_playlist(songs_list):
 
                 # determine sort_mode to choose sort algorithm
                 if sort_mode:
-                    song_id_points_name_list = merge_sort(song_id_points_name_list)
+                    song_id_points_name_list = quick_sort(song_id_points_name_list)
                 else:
-                    song_id_points_name_list = merge_sort(song_id_points_name_list)
+                    song_id_points_name_list = quick_sort(song_id_points_name_list)
 
 
                 # get last 8 songs and their corresponding album cover images
@@ -290,7 +290,7 @@ def display_playlist(songs_list):
         if sort_mode:
             surf_sort = font_big.render(heap_text, True, (255, 255, 255))
         else:
-            surf_sort = font_big.render(bucket_text, True, (255, 255, 255))
+            surf_sort = font_big.render(quick_text, True, (255, 255, 255))
         text_rect_sort = surf_sort.get_rect()
         text_rect_sort.center = (100, 245)  # +70 y to recbox
 
@@ -403,7 +403,7 @@ def load_songs_points(songs_list, user_requirements):
         mode_feature_points = user_requirements["MODE"][0]
         actual_mode = song[feature_indices["MODE"]]
         expected_mode = user_requirements["MODE"][1]
-        if actual_mode == expected_mode:
+        if str(actual_mode) == str(expected_mode):
             points_to_allocate = mode_feature_points
         else:
             points_to_allocate = 0
@@ -449,6 +449,10 @@ def load_songs_points(songs_list, user_requirements):
         # -- Feature Explicit --
         explicit_feature_points = user_requirements["EXPLICIT"][0]
         actual_explicit = song[feature_indices["EXPLICIT"]]
+        if actual_explicit == 'FALSE':
+            actual_explicit = 0
+        else:
+            actual_explicit = 1
         expected_explicit = user_requirements["EXPLICIT"][1]
         if actual_explicit == expected_explicit:
             points_to_allocate = explicit_feature_points
