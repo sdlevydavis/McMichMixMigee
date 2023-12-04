@@ -100,6 +100,9 @@ def fake_get_user_input(slider_values, checkboxes, check_order):
 
 # function to display playlist of selected songs
 def display_playlist(songs_list):
+    # True is heap sort, False is bucket sort
+    sort_mode = True
+
     # positions that album images will be display at
     img_positions = [(125, 325), (275, 325), (425, 325), (575, 325), (125, 475), (275, 475), (425, 475), (575, 475)]
 
@@ -114,18 +117,26 @@ def display_playlist(songs_list):
     generate_playlist_button_hover_color = (100, 200, 255)
     current_generate_button_color = generate_playlist_button_color
 
+    # set-up toggle switch for sort mode
+    heap_text = "HEAP SORT"
+    bucket_text = "BUCKET SORT"
+    sort_mode_instructions_text = "Press (H) for Heap Sort or (B) for Bucket Sort"
+    sort_mode_button_rect = pygame.Rect(50, 220, 100, 50)
+    sort_mode_button_color = (50, 150, 255)
+
     # Initialize Pygame
     pygame.init()
 
     # Set up display
     width, height = 800, 600
     screen = pygame.display.set_mode((width, height))
-
     pygame.display.set_caption("McMichMixMigee Menu")
-
     clock = pygame.time.Clock()
 
     font = pygame.font.Font("SegUIVar.ttf", 14)
+    font_big = pygame.font.Font("SegUIVar.ttf", 14)
+
+    # generate button text set-up
     surf = font.render(generate_text, True, (255, 255, 255))
     text_rect = surf.get_rect()
     text_rect.center = (400, 245)  # +70 y to recbox
@@ -180,6 +191,11 @@ def display_playlist(songs_list):
                 mouse_drag = True
             elif event.type == pygame.MOUSEBUTTONUP:
                 mouse_drag = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_h:
+                    sort_mode = True
+                elif event.key == pygame.K_b:
+                    sort_mode = False
 
         for checkbox in checkboxes:
             checkbox.display(screen, font)
@@ -222,16 +238,26 @@ def display_playlist(songs_list):
                 # print(song_id_points_pair_list)  # for debugging purposes
 
                 """ 
-                # 1. sort song_id_points_pair_list
+                # 1. determine sort_mode to choose sort algorithm
+
+                    if sort_mode:
+                        heap_sort(song_points_pair_list)
+                    else:
+                        bucket_sort(song_points_pair_list)
+
                 # 2. get top 8 songs and their corresponding album cover images
-                    song_id_points_pair_list = sort(song_id_points_pair_list)
-                    selected_song_ids = [] # top 8 songs from sorted song_id_points_pair_list
+
+                    song_points_pair_list = sort(song_points_pair_list)
+                    selected_song_ids = [] # top 8 songs from sorted song_points_pair_list
                     image_urls = []
                     for song_id in selected_song_ids:
                         image_urls.append(get_album_track_img(song_id)
 
                     print_playlist_data(selected_song_ids)  # prints generated playlist data
+
                 """
+
+                # replace below block of code after implementing sorting
                 selected_song_ids = []
                 image_urls = []
                 song_count = 1
@@ -268,10 +294,31 @@ def display_playlist(songs_list):
                 img_index += 1
             # print("loaded data")  # for debugging purposes
 
+
+        # set sort-mode button text (H or B)
+        if sort_mode:
+            surf_sort = font_big.render(heap_text, True, (255, 255, 255))
+        else:
+            surf_sort = font_big.render(bucket_text, True, (255, 255, 255))
+        text_rect_sort = surf_sort.get_rect()
+        text_rect_sort.center = (100, 245)  # +70 y to recbox
+
+        surf_sort_instruct = font.render(sort_mode_instructions_text, True, (255, 255, 255))
+        text_rect_sort_instruct = surf_sort_instruct.get_rect()
+        text_rect_sort_instruct.center = (150, 275)
+
+
         # draw generate playlist button
         pygame.draw.rect(screen, current_generate_button_color, generate_playlist_button_rect, border_radius=50)
 
+        # draw sort mode button
+        pygame.draw.rect(screen, sort_mode_button_color, sort_mode_button_rect, border_radius=50)
+
+        # draw generate playlist button text
         screen.blit(surf, text_rect)
+        # draw sort-mode button text
+        screen.blit(surf_sort, text_rect_sort)
+        screen.blit(surf_sort_instruct, text_rect_sort_instruct)
 
         # Update the display
         pygame.display.flip()
