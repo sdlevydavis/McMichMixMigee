@@ -209,8 +209,19 @@ def display_playlist(songs_list):
                 pygame.draw.rect(screen, slider_color, slider_rects[i])
                 handle_x = slider_rects[i].left + int(slider_rects[i].width * slider_decimal[i])
                 pygame.draw.circle(screen, handle_color, (handle_x, slider_rects[i].centery), handle_radius)
-                value_surface = font.render(
-                    str(round(user_requirements[playlist_features.available_features[i]][1], 2)), True, (255, 255, 255))
+                if playlist_features.available_features[i] == "KEY":
+                    value_surface = font.render(KEY_SIGNATURES[user_requirements[playlist_features.available_features[i]][1]], True, (255, 255, 255))
+                elif playlist_features.available_features[i] == "MODE":
+                    if user_requirements[playlist_features.available_features[i]][1] == 1:
+                        value_surface = font.render(
+                            "Major", True,
+                            (255, 255, 255))
+                    else:
+                        value_surface = font.render(
+                            "Minor", True,
+                            (255, 255, 255))
+                else:
+                    value_surface = font.render(str(round(user_requirements[playlist_features.available_features[i]][1], 2)), True, (255, 255, 255))
                 screen.blit(value_surface, (handle_x + 10, slider_rects[i].centery - 4))
 
         # get mouse position
