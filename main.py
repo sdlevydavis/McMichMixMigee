@@ -14,7 +14,7 @@ import time
 # formatting messed up if cell in csv file has extra commas, so far only checked up to row 300,000
 MAX_DATA_SET_SIZE = 300000
 # set data set size
-DATA_SET_SIZE = 100
+DATA_SET_SIZE = 1000
 # set data set file name
 DATA_FILE = "tracks_features_condensed.csv"
 # index of features data set file
@@ -245,6 +245,7 @@ def display_playlist(songs_list):
                     start = time.time()
                     heapSort(song_id_points_name_list)
                     end = time.time()
+                    elapsed_time_ns = (end - start) * 1e9
                     elapsed_time_ms = (end - start) * 1e3
 
                 else:
@@ -252,6 +253,7 @@ def display_playlist(songs_list):
                     start = time.time()
                     song_id_points_name_list = merge_sort(song_id_points_name_list)
                     end = time.time()
+                    elapsed_time_ns = (end - start) * 1e9
                     elapsed_time_ms = (end - start) * 1e3
 
 
@@ -270,9 +272,9 @@ def display_playlist(songs_list):
                 # prints generated playlist data
                 print_playlist_data(selected_song_ids)
                 if sort_mode:
-                    print(f"\nExecution time using Heap Sort: {elapsed_time_ms} milliseconds")
+                    print(f"\nExecution time using Heap Sort: {elapsed_time_ns} nanoseconds or {elapsed_time_ms} milliseconds")
                 else:
-                    print(f"\nExecution time using Merge Sort: {elapsed_time_ms} milliseconds")
+                    print(f"\nExecution time using Merge Sort: {elapsed_time_ns} nanoseconds or {elapsed_time_ms} milliseconds")
 
 
             # Load images from urls
@@ -515,8 +517,8 @@ def get_songs_from_file(filename, num_of_songs=5):
 # gets image url of the album that a given track ID is located in
 def get_album_track_img(track_id):
     # Spotify API credentials
-    client_id = '9926209563fb4b1fb218c11ae046f3fa'
-    client_secret = '78a416c00cba4ab88368505236ce446c'
+    client_id = '57967a08baed431fb902b7838d372a34'
+    client_secret = 'ab81e2878da04d85a25deb6f9886d2b5'
     redirect_uri = 'http://127.0.0.1:5000/redirect/'
 
     # Set up Spotipy client
@@ -537,8 +539,8 @@ def get_album_track_img(track_id):
 
 def print_playlist_data(song_ids):
     # Spotify API credentials
-    client_id = '9926209563fb4b1fb218c11ae046f3fa'
-    client_secret = '78a416c00cba4ab88368505236ce446c'
+    client_id = '57967a08baed431fb902b7838d372a34'
+    client_secret = 'ab81e2878da04d85a25deb6f9886d2b5'
     redirect_uri = 'http://127.0.0.1:5000/redirect/'
 
     # Set up Spotipy client
