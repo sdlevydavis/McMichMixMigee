@@ -100,6 +100,7 @@ def display_playlist(songs_list):
     # Set up display
     width, height = 800, 600
     screen = pygame.display.set_mode((width, height))
+
     pygame.display.set_caption("McMichMixMigee Menu")
 
     clock = pygame.time.Clock()
@@ -224,9 +225,14 @@ def display_playlist(songs_list):
                 mask = pygame.Surface((int(square_rect.width), int(square_rect.width)), pygame.SRCALPHA)
                 pygame.draw.circle(mask, (255, 255, 255, 255), (square_rect.width // 2, square_rect.width // 2),
                                    square_rect.width // 2)
+                adjust=square_rect.width // 2
+
 
                 screen.blit(image, img_positions[img_index])
                 screen.blit(mask, img_positions[img_index], special_flags=pygame.BLEND_RGBA_MULT)
+                whiteFrame= pygame.Surface((int(square_rect.width), int(square_rect.width)))
+                pygame.draw.circle(screen, (255, 250, 250), ((img_positions[img_index][0]+adjust),img_positions[img_index][1]+adjust),
+                                   square_rect.width // 2, width=3)
                 img_index += 1
             # print("loaded data")  # for debugging purposes
 
