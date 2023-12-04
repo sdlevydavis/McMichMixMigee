@@ -7,6 +7,7 @@ from io import BytesIO
 from checkbox import Checkbox
 import playlist_features
 import random
+import time
 
 # TODO: edit function -> load_songs_points()      !!! only tested one feature
 # TODO: add sorting algorithms
@@ -55,7 +56,7 @@ def main():
     print("\nThank You For Using McMichMixMigee Playlist Generator :)")
 
 
-def fake_get_user_input(slider_values, checkboxes, check_order):
+def load_user_input(slider_values, checkboxes, check_order):
     priority_points = [0] * len(slider_values)
     details = [1] * len(slider_values)
     user_requirements = {}
