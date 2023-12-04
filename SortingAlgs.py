@@ -21,6 +21,7 @@ def heapSort(scores):
         _heapifyDown(scores, j, 0)
 
 
+# merge sort inspired by discussion slides
 def merge_sort(arr):
     if len(arr) < 2:
         return arr
@@ -32,26 +33,14 @@ def merge_sort(arr):
 
 
 def _merge(left_arr, right_arr):
-    if len(left_arr) == 0:
-        return left_arr
-
-    if len(right_arr) == 0:
-        return right_arr
-
     combined_arr = []
-    left_arr_curr_index = 0
-    right_arr_curr_index = 0
-    while len(combined_arr) < len(left_arr) + len(right_arr):
-        if left_arr[left_arr_curr_index][1] < right_arr[right_arr_curr_index][1]:
-            combined_arr.append(left_arr[left_arr_curr_index])
-            left_arr_curr_index += 1
+
+    while len(left_arr) > 0 and len(right_arr) > 0:
+        if left_arr[0][1] <= right_arr[0][1]:
+            combined_arr.append(left_arr[0])
+            left_arr = left_arr[1:]
         else:
-            combined_arr.append(right_arr[right_arr_curr_index])
-            right_arr_curr_index += 1
-        if left_arr_curr_index == len(left_arr) or right_arr_curr_index == len(right_arr):
-            combined_arr.extend(left_arr[left_arr_curr_index:] or right_arr[right_arr_curr_index:])
-            break
+            combined_arr.append(left_arr[0])
+            right_arr = right_arr[1:]
 
     return combined_arr
-
-# print(merge_sort([("a", 190, "sydni"), ("b", 19, "sydni"), ("a", -1, "sydni"), ("cc", 10, "d"), ("e", 1, "sydni")]))
