@@ -297,7 +297,11 @@ def display_playlist(songs_list):
                                    ((img_positions[img_index][0] + adjust), img_positions[img_index][1] + adjust),
                                    square_rect.width // 2, width=3)
                 #song name
-                name_surface = font_big.render(selected_song_names[img_index], True, (255, 255, 255))
+                name = selected_song_names[img_index]
+                name_len = len(name)
+                if name_len > 18:
+                    name = name[:18] + "[...]"
+                name_surface = font_big.render(name, True, (255, 255, 255))
                 name_text_rect = name_surface.get_rect()
                 name_text_rect.center = (170+img_index*150, 430)
                 if img_index > 3:
