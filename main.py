@@ -13,7 +13,7 @@ import random
 
 
 DATA_SET_SIZE = 10  # set data set size (can't be more than ~ 1 million)
-DATA_FILE = "tracks_features_condensed.csv"  # set data set file name
+DATA_FILE = "tracks_features.csv"  # set data set file name
 GRAY = (128, 128, 128)  # set-up screen color
 feature_indices = {"ID": 0, "NAME": 1, "ALBUM": 2, "ARTISTS": 3, "EXPLICIT": 4,
                    "DANCEABILITY": 5, "ENERGY": 6, "KEY": 7, "Mode": 8,
@@ -32,7 +32,9 @@ def main():
     print("\nThank You For Using McMichMixMigee Playlist Generator :)")
 
 
-def fake_get_user_input():
+def fake_get_user_input(slider_values, checkboxes, check_order):
+    priority_points = [0]*len(slider_values)
+    details = [1]*len(slider_values)
     user_requirements = {}
     welcome_msg = "Welcome to McMichMixMigee Playlist Generator!"
     msg_length = len(welcome_msg) / 2
@@ -58,20 +60,41 @@ def fake_get_user_input():
           f"10. DURATION (mins)\n"
           f"11. YEAR\n")
 
-    priority_points = input(f"Input priority for feature - DURATION (mins): ")
-    while not priority_points.isnumeric() or int(priority_points) > 11 or int(priority_points) < 0:
-        print("Invalid Input! Enter an integer from 1 to 19")
-        priority_points = input(f"Input priority for feature - DURATION (mins): ")
-    details = input(" --- feature details: ")
-    user_requirements["DURATION (mins)"] = (priority_points, details)
+    for i in range(len(slider_values)):
+        if checkboxes[i].checked:
+            priority_points[i] = 12
+            found = False
+            while not found:
+                priority_points[i] -= 1
+                found = (check_order[11 - priority_points[i]] == i)
+
+            match playlist_features.available_features[i]:
+                case 'YEAR' :
+                    details[i] = round(slider_values[i] * 83) + 1940
+                case 'DURATION (mins)':
+                    details[i] = slider_values[i] * 4.5 + 0.5
+                case 'EXPLICIT':
+                    details[i] = round(slider_values[i])
+                case 'MODE':
+                    details[i] = round(slider_values[i])
+                case 'KEY':
+                    details[i] = round(slider_values[i]*11)
+                case 'TEMPO':
+                    details[i] = slider_values[i]*248
+                case 'INSTRUMENTALNESS':
+                    details[i] = slider_values[i]
+                case 'DANCEABILITY':
+                    details[i] = slider_values[i]
+                case 'ACOUSTICNESS':
+                    details[i] = slider_values[i]
+                case 'VALENCE':
+                    details[i] = slider_values[i]
+                case 'ENERGY':
+                    details[i] = slider_values[i]
+
+        user_requirements[playlist_features.available_features[i]] = (priority_points[i], details[i])
 
 
-    priority_points = input(f"Input priority for feature - YEAR: ")
-    while not priority_points.isnumeric() or int(priority_points) > 11 or int(priority_points) < 0:
-        print("Invalid Input! Enter an integer from 1 to 19")
-        priority_points = input(f"Input priority for feature - YEAR: ")
-    details = input(" --- feature details: ")
-    user_requirements["YEAR"] = (priority_points, details)
 
     print()
     return user_requirements
@@ -89,7 +112,7 @@ def display_playlist(songs_list):
     # set-up button for playlist generation
     generate_text = "GENERATE PLAYLIST"
     generate_playlist_button_clicked = False
-    generate_playlist_button_rect = pygame.Rect(325, 220, 150, 50)
+    generate_playlist_button_rect = pygame.Rect(325, 150, 150, 50)
     generate_playlist_button_color = (50, 150, 255)
     generate_playlist_button_hover_color = (100, 200, 255)
     current_generate_button_color = generate_playlist_button_color
@@ -100,36 +123,37 @@ def display_playlist(songs_list):
     # Set up display
     width, height = 800, 600
     screen = pygame.display.set_mode((width, height))
-
     pygame.display.set_caption("McMichMixMigee Menu")
 
     clock = pygame.time.Clock()
 
     font = pygame.font.Font("SegUIVar.ttf", 14)
-    surf = font.render(generate_text, True, (255,255,255))
+    surf = font.render(generate_text, True, (0, 0, 0))
     text_rect = surf.get_rect()
-    text_rect.center = (400, 245) #+70 y to recbox
+    text_rect.center = (400, 175)
 
     checkboxes = []
+    checkOrder = []
     slider_rects = []
     slider_color = (50, 150, 255)
     handle_radius = 10
     handle_color = (255, 255, 255)
 
-    slider_values = [0] * len(playlist_features.available_features)
+    slider_decimal = [0] * len(playlist_features.available_features)
+
 
     index = 0
     x_dimension = 15
     y_dimension = 15
     prev_x_dimension = 0
     for feature in playlist_features.available_features:
-        if index % 4 == 0:
+        if index % 5 == 0:
             x_dimension = 15
             y_dimension = 15 * (index + 1)
         else:
-            x_dimension = prev_x_dimension + 185
+            x_dimension = prev_x_dimension + 165
         checkboxes.append(Checkbox(x_dimension, y_dimension, feature))
-        slider_rects.append(pygame.Rect(x_dimension + 8+60, y_dimension + 25+20, 140, 10))
+        slider_rects.append(pygame.Rect(x_dimension + 8, y_dimension + 25, 140, 10))
         index += 1
         prev_x_dimension = x_dimension
 
@@ -137,19 +161,28 @@ def display_playlist(songs_list):
     running = True
     mouse_drag = False
     while running:
-        screen.fill((0,0,0))
+        screen.fill(GRAY)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    for checkbox in checkboxes:
-                        if checkbox.rect.collidepoint(event.pos):
-                            checkbox.checked = not checkbox.checked
+                    for i in range(len(checkboxes)):
+                        if checkboxes[i].rect.collidepoint(event.pos):
+                            checkboxes[i].checked = not checkboxes[i].checked
+                            if checkboxes[i].checked:
+                                checkOrder.append(i)
+                                checkboxes[i].select = len(checkOrder)
+                                user_requirements = fake_get_user_input(slider_decimal, checkboxes, checkOrder)
+                            else:
+                                checkOrder.remove(i)
+                                for j in range(len(checkOrder)):
+                                    checkboxes[checkOrder[j]].select = j + 1
                 mouse_drag = True
             elif event.type == pygame.MOUSEBUTTONUP:
                 mouse_drag = False
+
 
 
         for checkbox in checkboxes:
@@ -159,11 +192,16 @@ def display_playlist(songs_list):
         for i in range(len(slider_rects)):
             if checkboxes[i].checked:
                 if mouse_drag and slider_rects[i].collidepoint(event.pos):
-                    slider_values[i] = max(0, min((event.pos[0] - slider_rects[i].left) / slider_rects[i].width, 1))
+                    slider_decimal[i] = max(0, min((event.pos[0] - slider_rects[i].left) / slider_rects[i].width, 1))
+                    user_requirements = fake_get_user_input(slider_decimal, checkboxes, checkOrder)
+
+
 
                 pygame.draw.rect(screen, slider_color, slider_rects[i])
-                handle_x = slider_rects[i].left + int(slider_rects[i].width * slider_values[i])
+                handle_x = slider_rects[i].left + int(slider_rects[i].width * slider_decimal[i])
                 pygame.draw.circle(screen, handle_color, (handle_x, slider_rects[i].centery), handle_radius)
+                value_surface = font.render(str(round(user_requirements[playlist_features.available_features[i]][1],2)), True, (0, 0, 0))
+                screen.blit(value_surface, (handle_x + 4, slider_rects[i].centery - 4))
 
 
         # get mouse position
@@ -185,7 +223,7 @@ def display_playlist(songs_list):
             if not skip_reloading_data:
                 skip_reloading_data = True
                 # list of user's decided feature priorities
-                user_requirements = fake_get_user_input()  # delete this later and replace with data from scroll_bars
+                user_requirements = fake_get_user_input(slider_decimal, checkboxes, checkOrder)  # delete this later and replace with data from scroll_bars
                 song_id_points_pair_list = load_songs_points(songs_list, user_requirements)
                 # print(song_id_points_pair_list)  # for debugging purposes
 
@@ -221,23 +259,12 @@ def display_playlist(songs_list):
             # draw album images on screen
             img_index = 0
             for image in images:
-                square_rect = image.get_rect()
-                mask = pygame.Surface((int(square_rect.width), int(square_rect.width)), pygame.SRCALPHA)
-                pygame.draw.circle(mask, (255, 255, 255, 255), (square_rect.width // 2, square_rect.width // 2),
-                                   square_rect.width // 2)
-                adjust=square_rect.width // 2
-
-
                 screen.blit(image, img_positions[img_index])
-                screen.blit(mask, img_positions[img_index], special_flags=pygame.BLEND_RGBA_MULT)
-                whiteFrame= pygame.Surface((int(square_rect.width), int(square_rect.width)))
-                pygame.draw.circle(screen, (255, 250, 250), ((img_positions[img_index][0]+adjust),img_positions[img_index][1]+adjust),
-                                   square_rect.width // 2, width=3)
                 img_index += 1
             # print("loaded data")  # for debugging purposes
 
         # draw generate playlist button
-        pygame.draw.rect(screen, current_generate_button_color, generate_playlist_button_rect,border_radius=50)
+        pygame.draw.rect(screen, current_generate_button_color, generate_playlist_button_rect)
 
         screen.blit(surf, text_rect)
 
