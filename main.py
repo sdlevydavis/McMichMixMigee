@@ -517,8 +517,8 @@ def get_songs_from_file(filename, num_of_songs=5):
 # gets image url of the album that a given track ID is located in
 def get_album_track_img(track_id):
     # Spotify API credentials
-    client_id = '57967a08baed431fb902b7838d372a34'
-    client_secret = 'ab81e2878da04d85a25deb6f9886d2b5'
+    client_id = '' # this is private data
+    client_secret = '' # this is private data
     redirect_uri = 'http://127.0.0.1:5000/redirect/'
 
     # Set up Spotipy client
@@ -539,8 +539,8 @@ def get_album_track_img(track_id):
 
 def print_playlist_data(song_ids):
     # Spotify API credentials
-    client_id = '57967a08baed431fb902b7838d372a34'
-    client_secret = 'ab81e2878da04d85a25deb6f9886d2b5'
+    client_id = '' # this is private data
+    client_secret = '' # this is private data
     redirect_uri = 'http://127.0.0.1:5000/redirect/'
 
     # Set up Spotipy client
