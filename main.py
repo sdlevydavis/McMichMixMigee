@@ -12,7 +12,7 @@ import random
 # TODO: add sorting algorithms
 
 
-DATA_SET_SIZE = 10  # set data set size (can't be more than ~ 1 million)
+DATA_SET_SIZE = 100  # set data set size (can't be more than ~ 1 million)
 DATA_FILE = "tracks_features_condensed.csv"  # set data set file name
 GRAY = (128, 128, 128)  # set-up screen color
 feature_indices = {"ID": 0, "NAME": 1, "ALBUM": 2, "ARTISTS": 3, "EXPLICIT": 4,
@@ -141,15 +141,15 @@ def display_playlist(songs_list):
     text_rect = surf.get_rect()
     text_rect.center = (400, 245)  # +70 y to recbox
 
+
     checkboxes = []
     checkOrder = []
     slider_rects = []
     slider_color = (50, 150, 255)
     handle_radius = 10
     handle_color = (255, 255, 255)
-
-    slider_values = [0] * len(playlist_features.available_features)
     slider_decimal = [0] * len(playlist_features.available_features)
+
 
     index = 0
     x_dimension = 15
@@ -259,17 +259,23 @@ def display_playlist(songs_list):
 
                 # replace below block of code after implementing sorting
                 selected_song_ids = []
+                selected_songs = []
                 image_urls = []
                 song_count = 1
                 max_index = len(songs_list) - 1
                 while song_count < 9:
                     rand_index = random.randint(0, max_index)
                     song = songs_list[rand_index]
+                    selected_songs.append(song)
                     selected_song_ids.append(song[feature_indices["ID"]])
                     image_urls.append(get_album_track_img(song[feature_indices["ID"]]))
                     song_count += 1
 
                 print_playlist_data(selected_song_ids)  # prints generated playlist data
+            #song name list
+            song_names = []
+            for sel_song in selected_songs:
+                song_names.append(sel_song[1])
 
             # Load images from urls
             images = []
@@ -287,10 +293,17 @@ def display_playlist(songs_list):
 
                 screen.blit(image, img_positions[img_index])
                 screen.blit(mask, img_positions[img_index], special_flags=pygame.BLEND_RGBA_MULT)
-                whiteFrame = pygame.Surface((int(square_rect.width), int(square_rect.width)))
                 pygame.draw.circle(screen, (255, 250, 250),
                                    ((img_positions[img_index][0] + adjust), img_positions[img_index][1] + adjust),
                                    square_rect.width // 2, width=3)
+                #song name
+                name_surface = font_big.render(song_names[img_index], True, (255, 255, 255))
+                name_text_rect = name_surface.get_rect()
+                name_text_rect.center = (170+img_index*150, 430)
+                if img_index > 3:
+                    name_text_rect.center = (170 + (img_index-4) * 150, 580)
+                screen.blit(name_surface, name_text_rect)
+
                 img_index += 1
             # print("loaded data")  # for debugging purposes
 
