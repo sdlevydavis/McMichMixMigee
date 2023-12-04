@@ -28,14 +28,6 @@ link = 'https://static.wikia.nocookie.net/gensin-impact/images/2/21/' \
 def main():
     # read file and put song data in a list
     songs_list = get_songs_from_file(DATA_FILE, DATA_SET_SIZE)
-    display_playlist(songs_list)
-    print("\nThank You For Using McMichMixMigee Playlist Generator :)")
-
-
-def fake_get_user_input(slider_values, checkboxes, check_order):
-    priority_points = [0] * len(slider_values)
-    details = [1] * len(slider_values)
-    user_requirements = {}
     welcome_msg = "Welcome to McMichMixMigee Playlist Generator!"
     msg_length = len(welcome_msg) / 2
     while msg_length > 0:
@@ -59,6 +51,14 @@ def fake_get_user_input(slider_values, checkboxes, check_order):
           f"9. TEMPO\n"
           f"10. DURATION (mins)\n"
           f"11. YEAR\n")
+    display_playlist(songs_list)
+    print("\nThank You For Using McMichMixMigee Playlist Generator :)")
+
+
+def fake_get_user_input(slider_values, checkboxes, check_order):
+    priority_points = [0] * len(slider_values)
+    details = [1] * len(slider_values)
+    user_requirements = {}
 
     for i in range(len(slider_values)):
         if checkboxes[i].checked:
