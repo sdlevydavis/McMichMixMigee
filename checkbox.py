@@ -3,7 +3,7 @@ import pygame
 
 class Checkbox:
     def __init__(self, x, y, text):
-        self.rect = pygame.Rect(x+110, y+20, 15, 15)
+        self.rect = pygame.Rect(x+60, y+20, 15, 15)
         self.checked = False
         self.text = text
 

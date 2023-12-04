@@ -127,9 +127,9 @@ def display_playlist(songs_list):
             x_dimension = 15
             y_dimension = 15 * (index + 1)
         else:
-            x_dimension = prev_x_dimension + 165
+            x_dimension = prev_x_dimension + 185
         checkboxes.append(Checkbox(x_dimension, y_dimension, feature))
-        slider_rects.append(pygame.Rect(x_dimension + 8, y_dimension + 25, 140, 10))
+        slider_rects.append(pygame.Rect(x_dimension + 8+60, y_dimension + 25+20, 140, 10))
         index += 1
         prev_x_dimension = x_dimension
 
