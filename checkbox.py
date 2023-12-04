@@ -3,7 +3,7 @@ import pygame
 
 class Checkbox:
     def __init__(self, x, y, text):
-        self.rect = pygame.Rect(x, y, 15, 15)
+        self.rect = pygame.Rect(x+110, y+20, 15, 15)
         self.checked = False
         self.text = text
 
@@ -13,5 +13,5 @@ class Checkbox:
             pygame.draw.line(screen, mark_color, self.rect.topleft, self.rect.bottomright)
             pygame.draw.line(screen, mark_color, self.rect.topright, self.rect.bottomleft)
 
-        text_surface = font.render(self.text, True, (0, 0, 0))
+        text_surface = font.render(self.text, True, (255, 255, 255))
         screen.blit(text_surface, (self.rect.right + 10, self.rect.centery - 20 // 2))
