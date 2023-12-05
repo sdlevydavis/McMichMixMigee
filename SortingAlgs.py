@@ -16,7 +16,7 @@ def heapSort(scores):
     for i in range(len(scores) // 2 - 1, -1, -1):
         _heapifyDown(scores, len(scores), i)
 
-    for j in range(len(scores) - 1, 0, -1):
+    for j in range(len(scores) - 1, len(scores) - 9, -1):
         (scores[0], scores[j]) = (scores[j], scores[0])
         _heapifyDown(scores, j, 0)
 
